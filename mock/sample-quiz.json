@@ -1,0 +1,223 @@
+{
+  "id": "sample",
+  "name": "Ukázkový kvíz (M2)",
+  "ownerEmail": "ucitel@skola.cz",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "updatedAt": "2026-01-01T00:00:00Z",
+  "settings": {
+    "timeLimitSec": 0,
+    "shuffleAnswers": true
+  },
+  "questions": [
+    {
+      "id": "q01",
+      "text": "Kolik nohou má pavouk?",
+      "imageUrl": null,
+      "options": ["6", "8", "10", "12"],
+      "correctIndex": 1
+    },
+    {
+      "id": "q02",
+      "text": "Která planeta je největší v naší sluneční soustavě?",
+      "imageUrl": null,
+      "options": ["Saturn", "Uran", "Jupiter", "Neptun"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q03",
+      "text": "Kolik stran má pravidelný šestistěn (krychle)?",
+      "imageUrl": null,
+      "options": ["4", "5", "6", "8"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q04",
+      "text": "Jak se nazývá hlavní město Francie?",
+      "imageUrl": null,
+      "options": ["Lyon", "Marseille", "Bordeaux", "Paříž"],
+      "correctIndex": 3
+    },
+    {
+      "id": "q05",
+      "text": "Kolik centimetrů je jeden metr?",
+      "imageUrl": null,
+      "options": ["10", "100", "1000", "10000"],
+      "correctIndex": 1
+    },
+    {
+      "id": "q06",
+      "text": "Jaký plyn dýcháme (hlavní složka vzduchu)?",
+      "imageUrl": null,
+      "options": ["Kyslík", "Dusík", "Oxid uhličitý", "Vodík"],
+      "correctIndex": 1
+    },
+    {
+      "id": "q07",
+      "text": "Kolik minut má jedna hodina?",
+      "imageUrl": null,
+      "options": ["30", "45", "60", "90"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q08",
+      "text": "Která řeka protéká Prahou?",
+      "imageUrl": null,
+      "options": ["Morava", "Berounka", "Vltava", "Labe"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q09",
+      "text": "Kolik dnů má přestupný rok?",
+      "imageUrl": null,
+      "options": ["364", "365", "366", "367"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q10",
+      "text": "Jaká je chemická značka vody?",
+      "imageUrl": null,
+      "options": ["CO2", "NaCl", "H2O", "O2"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q11",
+      "text": "Kolik planet má naše sluneční soustava?",
+      "imageUrl": null,
+      "options": ["7", "8", "9", "10"],
+      "correctIndex": 1
+    },
+    {
+      "id": "q12",
+      "text": "Jak se nazývá největší kontinent?",
+      "imageUrl": null,
+      "options": ["Afrika", "Amerika", "Asie", "Antarktida"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q13",
+      "text": "Kolik je 7 × 8?",
+      "imageUrl": null,
+      "options": ["54", "56", "58", "64"],
+      "correctIndex": 1
+    },
+    {
+      "id": "q14",
+      "text": "Které zvíře je nejrychlejší na světě?",
+      "imageUrl": null,
+      "options": ["Lev", "Gepard", "Kůň", "Orel"],
+      "correctIndex": 1
+    },
+    {
+      "id": "q15",
+      "text": "Kolik smyslů má člověk (základních)?",
+      "imageUrl": null,
+      "options": ["3", "4", "5", "6"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q16",
+      "text": "Jak se nazývá nejvyšší hora světa?",
+      "imageUrl": null,
+      "options": ["K2", "Mont Blanc", "Kilimandžáro", "Mount Everest"],
+      "correctIndex": 3
+    },
+    {
+      "id": "q17",
+      "text": "Kolik je 15 + 27?",
+      "imageUrl": null,
+      "options": ["40", "41", "42", "43"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q18",
+      "text": "Jaká barva vznikne smícháním modré a žluté?",
+      "imageUrl": null,
+      "options": ["Fialová", "Oranžová", "Zelená", "Hnědá"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q19",
+      "text": "Kolik kostí má dospělý člověk?",
+      "imageUrl": null,
+      "options": ["186", "206", "226", "246"],
+      "correctIndex": 1
+    },
+    {
+      "id": "q20",
+      "text": "Která zemina se používá k výrobě cihel?",
+      "imageUrl": null,
+      "options": ["Písek", "Hlína (jíl)", "Štěrk", "Vápenec"],
+      "correctIndex": 1
+    },
+    {
+      "id": "q21",
+      "text": "Kolik písmen má česká abeceda?",
+      "imageUrl": null,
+      "options": ["26", "32", "42", "46"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q22",
+      "text": "Jaká je nejmenší planeta sluneční soustavy?",
+      "imageUrl": null,
+      "options": ["Mars", "Venuše", "Merkur", "Pluto"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q23",
+      "text": "Kolik je 144 ÷ 12?",
+      "imageUrl": null,
+      "options": ["10", "11", "12", "13"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q24",
+      "text": "Jak se nazývá hlavní město Japonska?",
+      "imageUrl": null,
+      "options": ["Peking", "Šanghaj", "Tokio", "Soul"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q25",
+      "text": "Kolik hodin má den?",
+      "imageUrl": null,
+      "options": ["12", "18", "24", "48"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q26",
+      "text": "Která barva vznikne smícháním červené a bílé?",
+      "imageUrl": null,
+      "options": ["Oranžová", "Růžová", "Fialová", "Hnědá"],
+      "correctIndex": 1
+    },
+    {
+      "id": "q27",
+      "text": "Kolik stran má trojúhelník?",
+      "imageUrl": null,
+      "options": ["2", "3", "4", "5"],
+      "correctIndex": 1
+    },
+    {
+      "id": "q28",
+      "text": "Jak se nazývá hlavní město Německa?",
+      "imageUrl": null,
+      "options": ["Mnichov", "Hamburg", "Frankfurt", "Berlín"],
+      "correctIndex": 3
+    },
+    {
+      "id": "q29",
+      "text": "Kolik měsíců má rok?",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Brad_Pitt_2019_by_Glenn_Francis.jpg/1200px-Brad_Pitt_2019_by_Glenn_Francis.jpg",
+      "options": ["10", "11", "12", "13"],
+      "correctIndex": 2
+    },
+    {
+      "id": "q30",
+      "text": "Která planeta je nejblíže Slunci?",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Mercury_in_true_color.jpg/1200px-Mercury_in_true_color.jpg",
+      "options": ["Venuše", "Mars", "Merkur", "Země"],
+      "correctIndex": 2
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AZ Kvíz – Hra</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ══ SETUP SCREEN ══════════════════════════════════════════════════════ -->
+<div id="screen-setup">
+  <h1>AZ Kvíz</h1>
+
+  <div class="setup-card">
+    <h2>Počet týmů</h2>
+    <div class="team-count-btns">
+      <button data-count="2" class="active">2 týmy</button>
+      <button data-count="3">3 týmy</button>
+    </div>
+  </div>
+
+  <div class="setup-card">
+    <h2>Názvy týmů</h2>
+    <div id="team-inputs" class="team-inputs"></div>
+  </div>
+
+  <button id="btn-start" class="btn-primary">Začít hru</button>
+</div>
+
+<!-- ══ GAME SCREEN ════════════════════════════════════════════════════════ -->
+<div id="screen-game" class="game-layout">
+
+  <!-- Board -->
+  <div class="board-area">
+    <div id="board"></div>
+  </div>
+
+  <!-- Side panel -->
+  <aside class="side-panel">
+    <h2>Na tahu</h2>
+    <div class="current-team-box">
+      <span class="label">Tým</span>
+      <span id="current-team-name" class="team-name">—</span>
+      <span id="current-hint" class="hint">Vyberte pole</span>
+    </div>
+
+    <h2>Skóre</h2>
+    <div id="score-list" class="score-list"></div>
+
+    <button id="btn-end-game" class="btn-danger">Ukončit hru</button>
+  </aside>
+</div>
+
+<!-- ══ QUESTION MODAL ════════════════════════════════════════════════════ -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <span id="modal-team-badge" class="modal-team-badge"></span>
+    <p id="modal-question" class="modal-question"></p>
+    <img id="modal-image" class="modal-image" src="" alt="Obrázek k otázce" style="display:none">
+    <div id="modal-timer" class="modal-timer"></div>
+    <div id="answer-grid" class="answer-grid"></div>
+  </div>
+</div>
+
+<!-- ══ FINISH OVERLAY ════════════════════════════════════════════════════ -->
+<div id="screen-finish" class="hidden">
+  <div class="finish-card">
+    <div class="trophy">🏆</div>
+    <h2 id="finish-title">Vyhrál Tým!</h2>
+    <p id="finish-sub"></p>
+    <button id="btn-play-again" class="btn-primary">Hrát znovu</button>
+  </div>
+</div>
+
+<script type="module" src="js/play.js"></script>
+</body>
+</html>

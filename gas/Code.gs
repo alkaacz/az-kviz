@@ -205,6 +205,30 @@ function doGet(e) {
       return quiz ? ok(quiz) : err('Quiz not found');
     }
 
+    // Debug endpoint — vrátí co GAS skutečně přijal (smazat po odladění)
+    if (action === 'debug') {
+      const props    = PropertiesService.getScriptProperties();
+      const clientId = props.getProperty('OAUTH_CLIENT_ID');
+      const allowed  = props.getProperty('ALLOWED_EMAILS');
+      const idToken  = e.parameter.idToken || '';
+      let tokenInfo  = null;
+      try {
+        const r = UrlFetchApp.fetch(
+          'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(idToken),
+          { muteHttpExceptions: true }
+        );
+        tokenInfo = JSON.parse(r.getContentText());
+      } catch (ex) { tokenInfo = { fetchError: ex.message }; }
+      return ok({
+        receivedTokenLength : idToken.length,
+        tokenAud            : tokenInfo && tokenInfo.aud,
+        tokenEmail          : tokenInfo && tokenInfo.email,
+        clientIdInProps     : clientId,
+        allowedEmailsInProps: allowed,
+        audMatch            : tokenInfo && tokenInfo.aud === clientId,
+      });
+    }
+
     const email = verifyIdToken(e.parameter.idToken);
     if (!isAllowed(email)) return err('Unauthorized');
 

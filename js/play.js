@@ -1,10 +1,11 @@
 /**
- * play.js - AZ Kvíz play screen logic (M2: mock quiz, no backend)
+ * play.js - AZ Kvíz play screen logic
  * @module play
  */
 
 import { renderBoardSVG } from './board.js';
 import { createGame } from './game.js';
+import { getQuizForPlay } from './api.js';
 
 // ── DOM refs ──────────────────────────────────────────────────────────────
 const screenSetup  = document.getElementById('screen-setup');
@@ -43,11 +44,19 @@ let timerInterval = null;
 
 // ── Load quiz ─────────────────────────────────────────────────────────────
 async function loadQuiz() {
+  const params = new URLSearchParams(location.search);
+  const quizId = params.get('quizId');
+
   try {
-    const res = await fetch('./mock/sample-quiz.json');
-    quiz = await res.json();
+    if (quizId) {
+      quiz = await getQuizForPlay(quizId);
+    } else {
+      // Fallback to mock data for local development without a quizId
+      const res = await fetch('./mock/sample-quiz.json');
+      quiz = await res.json();
+    }
   } catch (e) {
-    alert('Nepodařilo se načíst kvíz. Zkontrolujte konzoli.');
+    alert('Nepodařilo se načíst kvíz: ' + e.message);
     console.error(e);
   }
 }

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AZ Kvíz</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, 'Segoe UI', sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2rem;
+    }
+    h1 { font-size: 3rem; letter-spacing: .08em; color: #fff; }
+    p  { color: #90a4ae; max-width: 400px; text-align: center; line-height: 1.6; }
+    .btns { display: flex; gap: 1rem; }
+    a.btn {
+      padding: .75rem 2rem;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .btn-play  { background: #1e88e5; color: #fff; }
+    .btn-play:hover { background: #1565c0; }
+    .btn-admin { background: transparent; border: 2px solid #455a64; color: #90a4ae; }
+    .btn-admin:hover { border-color: #90a4ae; color: #e0e0e0; }
+  </style>
+</head>
+<body>
+  <h1>AZ Kvíz</h1>
+  <p>Vzdělávací hra pro celou třídu. Týmy soupeří o propojení hran trojúhelníkového hracího plánu.</p>
+  <div class="btns">
+    <a href="play.html" class="btn btn-play">🎮 Hrát</a>
+    <a href="admin.html" class="btn btn-admin">⚙️ Admin</a>
+  </div>
+</body>
+</html>

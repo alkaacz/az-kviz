@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AZ Kvíz – Admin</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* ── Admin-specific styles ───────────────────────────────────────── */
+    body { background: #f0f2f5; color: #1a1a2e; font-family: system-ui, sans-serif; }
+
+    .admin-wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #dde;
+    }
+    header h1 { font-size: 1.5rem; }
+    .user-info { display: flex; align-items: center; gap: .75rem; font-size: .9rem; color: #555; }
+    .user-info img { width: 32px; height: 32px; border-radius: 50%; }
+
+    /* Login */
+    #view-login {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+    #view-login h2 { font-size: 1.8rem; }
+    #view-login p  { color: #666; }
+
+    /* Quiz list */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .toolbar h2 { font-size: 1.2rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px #0001;
+    }
+    th, td { padding: .7rem 1rem; text-align: left; font-size: .9rem; }
+    th { background: #f8f9fa; font-weight: 600; color: #444; border-bottom: 1px solid #eee; }
+    tr:not(:last-child) td { border-bottom: 1px solid #f0f0f0; }
+    tr:hover td { background: #f8f9fa; }
+
+    .btn-sm {
+      padding: .3rem .7rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+      font-size: .82rem;
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .btn-sm:hover { background: #f0f2f5; }
+    .btn-sm.danger { border-color: #e53935; color: #e53935; }
+    .btn-sm.danger:hover { background: #fdecea; }
+    .btn-sm.primary { border-color: #1e88e5; color: #1e88e5; }
+    .btn-sm.primary:hover { background: #e3f2fd; }
+
+    .btn-primary { /* re-use from styles.css but for light bg */
+      background: #1e88e5;
+      color: #fff;
+      border: none;
+      padding: .6rem 1.2rem;
+      border-radius: 6px;
+      font-size: .95rem;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: #1565c0; }
+
+    /* Editor */
+    #view-editor { display: none; }
+    .editor-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .editor-header h2 { font-size: 1.2rem; flex: 1; }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-bottom: .75rem;
+    }
+    .field-row label { width: 160px; font-size: .9rem; color: #555; flex-shrink: 0; }
+    .field-row input[type="text"],
+    .field-row input[type="number"] {
+      flex: 1;
+      padding: .4rem .7rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: .9rem;
+    }
+
+    .settings-row { margin-bottom: 1.25rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .settings-row label { font-size: .9rem; display: flex; align-items: center; gap: .4rem; }
+
+    /* Questions table */
+    #questions-wrap { overflow-x: auto; margin-top: 1.25rem; }
+
+    table.q-table th, table.q-table td { padding: .5rem .6rem; vertical-align: top; }
+    table.q-table input[type="text"] {
+      width: 100%;
+      padding: .3rem .5rem;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-size: .83rem;
+    }
+    table.q-table textarea {
+      width: 100%;
+      padding: .3rem .5rem;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-size: .83rem;
+      resize: vertical;
+      min-height: 54px;
+    }
+
+    .error-msg { color: #e53935; font-size: .85rem; margin-top: .5rem; }
+    .success-msg { color: #43a047; font-size: .85rem; margin-top: .5rem; }
+
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid #ccc;
+      border-top-color: #1e88e5;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="admin-wrap">
+
+  <header>
+    <h1>AZ Kvíz – Admin</h1>
+    <div id="user-info" class="user-info" style="display:none">
+      <img id="user-avatar" src="" alt="">
+      <span id="user-name"></span>
+      <button class="btn-sm" id="btn-signout">Odhlásit</button>
+    </div>
+  </header>
+
+  <!-- Login view -->
+  <div id="view-login">
+    <h2>Přihlášení</h2>
+    <p>Pro správu kvízů se přihlaste svým Google účtem.</p>
+    <div id="google-btn"></div>
+  </div>
+
+  <!-- Quiz list view -->
+  <div id="view-list" style="display:none">
+    <div class="toolbar">
+      <h2>Kvízy</h2>
+      <button class="btn-primary" id="btn-new-quiz">+ Nový kvíz</button>
+    </div>
+    <div id="list-status"></div>
+    <table id="quiz-table">
+      <thead>
+        <tr>
+          <th>Název</th>
+          <th>Otázky</th>
+          <th>Upraveno</th>
+          <th>Vlastník</th>
+          <th>Akce</th>
+        </tr>
+      </thead>
+      <tbody id="quiz-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Editor view -->
+  <div id="view-editor">
+    <div class="editor-header">
+      <button class="btn-sm" id="btn-back">← Zpět</button>
+      <h2 id="editor-title">Nový kvíz</h2>
+      <button class="btn-primary" id="btn-save">Uložit</button>
+    </div>
+
+    <div class="field-row">
+      <label>Název kvízu</label>
+      <input type="text" id="quiz-name" placeholder="Přírodověda 5. třída" maxlength="80">
+    </div>
+
+    <div class="settings-row">
+      <label>
+        <input type="checkbox" id="shuffle-answers">
+        Zamíchat odpovědi
+      </label>
+      <label>
+        Časový limit (s, 0 = vypnuto)
+        <input type="number" id="time-limit" value="0" min="0" max="300" style="width:70px">
+      </label>
+    </div>
+
+    <div id="editor-status"></div>
+
+    <div id="questions-wrap">
+      <table class="q-table" style="width:100%;background:#fff;border-radius:8px;box-shadow:0 1px 4px #0001">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th style="min-width:200px">Otázka</th>
+            <th style="min-width:140px">URL obrázku</th>
+            <th>Odpověď A</th>
+            <th>Odpověď B</th>
+            <th>Odpověď C</th>
+            <th>Odpověď D</th>
+            <th>Správná</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="q-tbody"></tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:1rem;display:flex;gap:.75rem;align-items:center">
+      <button class="btn-sm primary" id="btn-add-q">+ Přidat otázku</button>
+      <span id="q-count-info" style="font-size:.85rem;color:#666"></span>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+  import { CONFIG } from './js/config.js';
+  import { initAuth, renderSignInButton, getIdToken, signOut } from './js/auth.js';
+  import { listQuizzes, getQuiz, saveQuiz, deleteQuiz } from './js/api.js';
+
+  // ── State ───────────────────────────────────────────────────────────────
+  let currentQuizId = null;  // null = new quiz
+
+  // ── Auth ────────────────────────────────────────────────────────────────
+  initAuth(CONFIG.OAUTH_CLIENT_ID, onSignIn, onSignOutCb);
+  renderSignInButton(document.getElementById('google-btn'));
+
+  document.getElementById('btn-signout').addEventListener('click', () => signOut());
+
+  function onSignIn(profile) {
+    document.getElementById('view-login').style.display = 'none';
+    document.getElementById('user-info').style.display  = 'flex';
+    document.getElementById('user-avatar').src          = profile.picture || '';
+    document.getElementById('user-name').textContent    = profile.name || profile.email;
+    showList();
+  }
+
+  function onSignOutCb() {
+    document.getElementById('view-login').style.display = 'flex';
+    document.getElementById('user-info').style.display  = 'none';
+    showView('view-login');
+  }
+
+  // ── View switching ──────────────────────────────────────────────────────
+  function showView(id) {
+    ['view-login', 'view-list', 'view-editor'].forEach(v => {
+      document.getElementById(v).style.display = v === id ? (id === 'view-login' ? 'flex' : 'block') : 'none';
+    });
+  }
+
+  // ── Quiz list ───────────────────────────────────────────────────────────
+  async function showList() {
+    showView('view-list');
+    const status = document.getElementById('list-status');
+    const tbody  = document.getElementById('quiz-tbody');
+    status.innerHTML = '<span class="spinner"></span> Načítám…';
+    tbody.innerHTML  = '';
+    try {
+      const quizzes = await listQuizzes();
+      status.innerHTML = '';
+      if (quizzes.length === 0) {
+        status.innerHTML = '<p style="color:#888;margin:.5rem 0">Zatím žádné kvízy.</p>';
+        return;
+      }
+      tbody.innerHTML = quizzes.map(q => `
+        <tr>
+          <td>${escHtml(q.name)}</td>
+          <td>${q.questionCount}</td>
+          <td>${formatDate(q.updatedAt)}</td>
+          <td style="font-size:.8rem;color:#888">${escHtml(q.ownerEmail || '')}</td>
+          <td style="display:flex;gap:.4rem;flex-wrap:wrap">
+            <button class="btn-sm primary" onclick="editQuiz('${q.id}')">Editovat</button>
+            <button class="btn-sm" onclick="copyLink('${q.id}')">Kopírovat odkaz</button>
+            <button class="btn-sm danger" onclick="removeQuiz('${q.id}', '${escHtml(q.name)}')">Smazat</button>
+          </td>
+        </tr>
+      `).join('');
+    } catch (e) {
+      status.innerHTML = `<p class="error-msg">Chyba: ${escHtml(e.message)}</p>`;
+    }
+  }
+
+  window.copyLink = function(id) {
+    const url = location.origin + location.pathname.replace('admin.html', '') + `play.html?quizId=${id}`;
+    navigator.clipboard.writeText(url).then(() => alert('Odkaz zkopírován:\n' + url));
+  };
+
+  window.removeQuiz = async function(id, name) {
+    if (!confirm(`Smazat kvíz "${name}"?`)) return;
+    try {
+      await deleteQuiz(id);
+      showList();
+    } catch (e) {
+      alert('Chyba: ' + e.message);
+    }
+  };
+
+  window.editQuiz = async function(id) {
+    currentQuizId = id;
+    const status = document.getElementById('editor-status');
+    status.innerHTML = '<span class="spinner"></span>';
+    showView('view-editor');
+    try {
+      const quiz = await getQuiz(id);
+      document.getElementById('editor-title').textContent     = quiz.name;
+      document.getElementById('quiz-name').value              = quiz.name;
+      document.getElementById('shuffle-answers').checked      = quiz.settings?.shuffleAnswers ?? true;
+      document.getElementById('time-limit').value             = quiz.settings?.timeLimitSec ?? 0;
+      buildQTable(quiz.questions);
+      status.innerHTML = '';
+    } catch (e) {
+      status.innerHTML = `<p class="error-msg">Chyba načtení: ${escHtml(e.message)}</p>`;
+    }
+  };
+
+  document.getElementById('btn-new-quiz').addEventListener('click', () => {
+    currentQuizId = null;
+    document.getElementById('editor-title').textContent = 'Nový kvíz';
+    document.getElementById('quiz-name').value          = '';
+    document.getElementById('shuffle-answers').checked  = true;
+    document.getElementById('time-limit').value         = 0;
+    document.getElementById('editor-status').innerHTML  = '';
+    buildQTable([]);
+    showView('view-editor');
+  });
+
+  document.getElementById('btn-back').addEventListener('click', () => showList());
+
+  // ── Editor ──────────────────────────────────────────────────────────────
+  function buildQTable(questions) {
+    const tbody = document.getElementById('q-tbody');
+    tbody.innerHTML = '';
+    questions.forEach((q, i) => addQRow(q, i));
+    updateQCount();
+  }
+
+  function addQRow(q = {}, index) {
+    const tbody = document.getElementById('q-tbody');
+    const i = tbody.rows.length;
+    const opts = q.options || ['', '', '', ''];
+    const correctIdx = q.correctIndex ?? 0;
+
+    const tr = document.createElement('tr');
+    tr.dataset.qid = q.id || '';
+    tr.innerHTML = `
+      <td style="color:#888;font-size:.8rem">${i + 1}</td>
+      <td><textarea class="q-text">${escHtml(q.text || '')}</textarea></td>
+      <td><input type="text" class="q-img" value="${escHtml(q.imageUrl || '')}" placeholder="https://…"></td>
+      ${opts.map((o, oi) => `<td><input type="text" class="q-opt" data-opt="${oi}" value="${escHtml(o)}"></td>`).join('')}
+      <td style="text-align:center">
+        <select class="q-correct">
+          ${['A','B','C','D'].map((l, li) => `<option value="${li}" ${li === correctIdx ? 'selected' : ''}>${l}</option>`).join('')}
+        </select>
+      </td>
+      <td><button class="btn-sm danger q-del" title="Smazat">✕</button></td>
+    `;
+    tr.querySelector('.q-del').addEventListener('click', () => {
+      tr.remove();
+      renumberRows();
+      updateQCount();
+    });
+    tbody.appendChild(tr);
+    updateQCount();
+  }
+
+  function renumberRows() {
+    document.querySelectorAll('#q-tbody tr').forEach((tr, i) => {
+      tr.cells[0].textContent = i + 1;
+    });
+  }
+
+  function updateQCount() {
+    const count = document.getElementById('q-tbody').rows.length;
+    const info  = document.getElementById('q-count-info');
+    info.textContent = `${count} otázek${count < 28 ? ` (minimum je 28, chybí ${28 - count})` : ' ✓'}`;
+    info.style.color = count < 28 ? '#e53935' : '#43a047';
+  }
+
+  document.getElementById('btn-add-q').addEventListener('click', () => {
+    addQRow();
+    document.getElementById('q-tbody').lastElementChild
+      ?.querySelector('.q-text')?.focus();
+  });
+
+  // ── Save ────────────────────────────────────────────────────────────────
+  document.getElementById('btn-save').addEventListener('click', async () => {
+    const status = document.getElementById('editor-status');
+    const name   = document.getElementById('quiz-name').value.trim();
+    if (!name) { status.innerHTML = '<p class="error-msg">Zadejte název kvízu.</p>'; return; }
+
+    const questions = [];
+    let valid = true;
+    document.querySelectorAll('#q-tbody tr').forEach((tr, i) => {
+      const text    = tr.querySelector('.q-text').value.trim();
+      const imgUrl  = tr.querySelector('.q-img').value.trim();
+      const opts    = [...tr.querySelectorAll('.q-opt')].map(el => el.value.trim());
+      const correct = parseInt(tr.querySelector('.q-correct').value, 10);
+      if (!text || opts.some(o => !o)) { valid = false; return; }
+      questions.push({ id: tr.dataset.qid || undefined, text, imageUrl: imgUrl || null, options: opts, correctIndex: correct });
+    });
+
+    if (!valid) { status.innerHTML = '<p class="error-msg">Každá otázka musí mít text a 4 odpovědi.</p>'; return; }
+    if (questions.length < 28) { status.innerHTML = `<p class="error-msg">Potřebujete alespoň 28 otázek (máte ${questions.length}).</p>`; return; }
+
+    const quiz = {
+      id:        currentQuizId || undefined,
+      name,
+      settings: {
+        shuffleAnswers: document.getElementById('shuffle-answers').checked,
+        timeLimitSec:   parseInt(document.getElementById('time-limit').value, 10) || 0,
+      },
+      questions,
+    };
+
+    status.innerHTML = '<span class="spinner"></span> Ukládám…';
+    document.getElementById('btn-save').disabled = true;
+    try {
+      const result = await saveQuiz(quiz);
+      currentQuizId = result.id;
+      status.innerHTML = '<p class="success-msg">✓ Uloženo!</p>';
+      document.getElementById('editor-title').textContent = name;
+    } catch (e) {
+      status.innerHTML = `<p class="error-msg">Chyba: ${escHtml(e.message)}</p>`;
+    } finally {
+      document.getElementById('btn-save').disabled = false;
+    }
+  });
+
+  // ── Helpers ─────────────────────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleDateString('cs-CZ'); } catch { return iso; }
+  }
+</script>
+</body>
+</html>

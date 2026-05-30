@@ -22,15 +22,15 @@ async function get(action, params = {}) {
 }
 
 async function post(action, payload = {}) {
+  // GAS 302-redirects POST→GET, losing the request body.
+  // Workaround: send everything via GET URL params.
+  const url = new URL(API_URL);
+  url.searchParams.set('action', action);
   const idToken = getIdToken();
-  const body = JSON.stringify({ action, idToken, payload });
+  if (idToken) url.searchParams.set('idToken', idToken);
+  url.searchParams.set('payload', JSON.stringify(payload));
 
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    // GAS requires text/plain to avoid CORS preflight
-    headers: { 'Content-Type': 'text/plain' },
-    body,
-  });
+  const res = await fetch(url.toString());
   const data = await res.json();
   if (!data.ok) throw new Error(data.error || 'API error');
   return data.data;

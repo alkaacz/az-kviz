@@ -211,6 +211,17 @@ function doGet(e) {
     if (action === 'listQuizzes') return ok(listQuizzes(ss));
     if (action === 'getQuiz')     return ok(getQuiz(ss, e.parameter.id));
 
+    if (action === 'saveQuiz') {
+      const payload = JSON.parse(e.parameter.payload || '{}');
+      const id = saveQuiz(ss, payload, email);
+      return ok({ id });
+    }
+    if (action === 'deleteQuiz') {
+      const payload = JSON.parse(e.parameter.payload || '{}');
+      deleteQuiz(ss, payload.id);
+      return ok({});
+    }
+
     return err('Unknown action');
   } catch (ex) {
     return err(ex.message);

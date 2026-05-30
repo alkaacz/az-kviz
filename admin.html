@@ -237,9 +237,42 @@
       </table>
     </div>
 
-    <div style="margin-top:1rem;display:flex;gap:.75rem;align-items:center">
+    <div style="margin-top:1rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
       <button class="btn-sm primary" id="btn-add-q">+ Přidat otázku</button>
+      <button class="btn-sm primary" id="btn-gen-nasobilka">🔢 Generovat násobilku</button>
       <span id="q-count-info" style="font-size:.85rem;color:#666"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Generátor násobilky – modal -->
+<div id="modal-gen" style="display:none;position:fixed;inset:0;background:#0008;z-index:200;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:10px;padding:1.75rem;max-width:400px;width:90%;box-shadow:0 8px 32px #0003">
+    <h3 style="margin-bottom:1rem">Generovat násobilku</h3>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem">
+      <label style="font-size:.9rem">
+        Od násobilky<br>
+        <input type="number" id="gen-from" value="2" min="1" max="10"
+               style="width:100%;padding:.4rem;border:1px solid #ccc;border-radius:4px;font-size:1rem;margin-top:.25rem">
+      </label>
+      <label style="font-size:.9rem">
+        Do násobilky<br>
+        <input type="number" id="gen-to" value="10" min="1" max="10"
+               style="width:100%;padding:.4rem;border:1px solid #ccc;border-radius:4px;font-size:1rem;margin-top:.25rem">
+      </label>
+    </div>
+
+    <label style="font-size:.9rem;display:flex;align-items:center;gap:.5rem;margin-bottom:1rem">
+      <input type="checkbox" id="gen-replace" checked>
+      Nahradit stávající otázky
+    </label>
+
+    <p id="gen-preview" style="font-size:.82rem;color:#666;margin-bottom:1rem"></p>
+
+    <div style="display:flex;gap:.75rem;justify-content:flex-end">
+      <button class="btn-sm" id="btn-gen-cancel">Zrušit</button>
+      <button class="btn-sm primary" id="btn-gen-confirm">Generovat</button>
     </div>
   </div>
 
@@ -457,6 +490,121 @@
       document.getElementById('btn-save').disabled = false;
     }
   });
+
+  // ── Násobilka generator ─────────────────────────────────────────────────
+
+  const modalGen   = document.getElementById('modal-gen');
+  const genFrom    = document.getElementById('gen-from');
+  const genTo      = document.getElementById('gen-to');
+  const genPreview = document.getElementById('gen-preview');
+
+  function updateGenPreview() {
+    const from = parseInt(genFrom.value, 10);
+    const to   = parseInt(genTo.value,   10);
+    if (isNaN(from) || isNaN(to) || from > to) {
+      genPreview.textContent = 'Neplatný rozsah.';
+      return;
+    }
+    // Count all combinations a×b where a in [from,to], b in [1,10]
+    const total = (to - from + 1) * 10;
+    genPreview.textContent = `Vygeneruje ${total} otázek (${from}×1 až ${to}×10). Pro hru se použije 28 náhodně vybraných.`;
+  }
+
+  genFrom.addEventListener('input', updateGenPreview);
+  genTo.addEventListener('input', updateGenPreview);
+
+  document.getElementById('btn-gen-nasobilka').addEventListener('click', () => {
+    updateGenPreview();
+    modalGen.style.display = 'flex';
+  });
+
+  document.getElementById('btn-gen-cancel').addEventListener('click', () => {
+    modalGen.style.display = 'none';
+  });
+
+  document.getElementById('btn-gen-confirm').addEventListener('click', () => {
+    const from    = parseInt(genFrom.value, 10);
+    const to      = parseInt(genTo.value,   10);
+    const replace = document.getElementById('gen-replace').checked;
+
+    if (isNaN(from) || isNaN(to) || from > to || from < 1 || to > 10) {
+      alert('Neplatný rozsah. Zadejte čísla 1–10, přičemž Od ≤ Do.');
+      return;
+    }
+
+    const questions = generateNasobilka(from, to);
+
+    if (replace) {
+      buildQTable(questions);
+    } else {
+      questions.forEach(q => addQRow(q));
+    }
+
+    // Prefill quiz name if empty
+    const nameEl = document.getElementById('quiz-name');
+    if (!nameEl.value.trim()) {
+      nameEl.value = `Násobilka ${from}–${to}`;
+      document.getElementById('editor-title').textContent = nameEl.value;
+    }
+
+    modalGen.style.display = 'none';
+  });
+
+  /**
+   * Generate multiplication table questions for tables `from` to `to`.
+   * Each question has 4 options: correct answer + 3 plausible distractors.
+   * @param {number} from
+   * @param {number} to
+   * @returns {Array}
+   */
+  function generateNasobilka(from, to) {
+    const questions = [];
+    for (let a = from; a <= to; a++) {
+      for (let b = 1; b <= 10; b++) {
+        const correct = a * b;
+        const options = generateOptions(correct, a, b);
+        const correctIndex = options.indexOf(correct);
+        questions.push({
+          text: `Kolik je ${a} × ${b}?`,
+          imageUrl: null,
+          options: options.map(String),
+          correctIndex,
+        });
+      }
+    }
+    return questions;
+  }
+
+  /**
+   * Generate 4 answer options: correct + 3 distractors that look plausible.
+   */
+  function generateOptions(correct, a, b) {
+    const candidates = new Set([correct]);
+
+    // Neighbours: ±1, ±a, ±b on the correct answer
+    const deltas = [1, -1, a, -a, b, -b, a + 1, a - 1, b + 1, b - 1];
+    for (const d of deltas) {
+      const v = correct + d;
+      if (v > 0 && v !== correct) candidates.add(v);
+      if (candidates.size >= 8) break;
+    }
+
+    // Fill up with random nearby values if needed
+    while (candidates.size < 6) {
+      const v = correct + Math.floor(Math.random() * 10) - 5;
+      if (v > 0) candidates.add(v);
+    }
+
+    // Pick 3 distractors, shuffle all 4
+    const distractors = [...candidates].filter(v => v !== correct).slice(0, 3);
+    const all = [correct, ...distractors];
+    // Fisher-Yates
+    for (let i = all.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [all[i], all[j]] = [all[j], all[i]];
+    }
+    return all;
+  }
 
   // ── Helpers ─────────────────────────────────────────────────────────────
   function escHtml(s) {

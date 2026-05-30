@@ -1,9 +1,6 @@
 # Dependencies
 node_modules/
 
-# Local config with secrets — never commit!
-js/config.js
-
 # OS
 .DS_Store
 Thumbs.db

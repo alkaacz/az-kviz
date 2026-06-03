@@ -11,10 +11,11 @@ export const CONFIG = {
   API_URL: // 'https://script.google.com/macros/s/AKfycbziHhilErprUmNdc_W4_VGhzt3Ikl13iQtYJczJzP_CdUJj1mtZmVukmGzZtewDKvzwuA/exec',
         //  'https://script.google.com/macros/s/AKfycbwYoDHEzowGRfbKW0_SwMwQA8FOmfDZZ1LaJH-GFK6sVICJ2-IybGWXrtxnB8yJh3EkVw/exec', 
         //  'https://script.google.com/macros/s/AKfycbyZMMayZhvACvHUH00P44m6ZXbn1nkHNCBUQ546CTMiXQCZSr79R_o0aoXVqcxBDbzESg/exec',
-            'https://script.google.com/macros/s/AKfycbzS9KPW4aQabPYlwm_aZTnykpD4wKhlCYx23Md4sAzD9855Ji4EEM-jM4ox6P_ZUKJStg/exec', // verze 10
+//            'https://script.google.com/macros/s/AKfycbzS9KPW4aQabPYlwm_aZTnykpD4wKhlCYx23Md4sAzD9855Ji4EEM-jM4ox6P_ZUKJStg/exec', // verze 10
          // https://script.google.com/macros/s/AKfycbzS9KPW4aQabPYlwm_aZTnykpD4wKhlCYx23Md4sAzD9855Ji4EEM-jM4ox6P_ZUKJStg/exec
+         'https://script.google.com/macros/s/AKfycbzb9dV4m_puOPxoBucNqymMrMmgfoQbBBNQ6sZqSRbLitU7WFV4BnL8UptDFKEhZMm8BA/exec', // verze 11
 
   // Spreadsheet ID z URL: docs.google.com/spreadsheets/d/TOTO-JE-ID/edit
-  SPREADSHEET_ID: '1KrqJ5xrQ5WfVX9OY8YG8CuDvWelqUf_CYqaRW5p8psE',
+  SPREADSHEET_ID: '1KrqJ5xrQ5WfVX9OY8YG8CuDvWelqUf_CYqaRW5p8psE'
   //               1KrqJ5xrQ5WfVX9OY8YG8CuDvWelqUf_CYqaRW5p8psE
 };

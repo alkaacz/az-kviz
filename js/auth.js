@@ -6,6 +6,16 @@
 let _idToken = null;
 let _onSignIn  = null;
 let _onSignOut = null;
+const _authDebugEnabled = new URLSearchParams(window.location.search).get('debugAuth') === '1';
+
+function _authDebug(message, details) {
+  if (!_authDebugEnabled) return;
+  if (details !== undefined) {
+    console.log(`[auth-debug] ${message}`, details);
+    return;
+  }
+  console.log(`[auth-debug] ${message}`);
+}
 
 /**
  * Initialise Google Sign-In.
@@ -16,12 +26,15 @@ let _onSignOut = null;
 export function initAuth(clientId, onSignIn, onSignOut) {
   _onSignIn  = onSignIn;
   _onSignOut = onSignOut;
+  _authDebug('initAuth called', { hasClientId: Boolean(clientId) });
 
   // Restore token from sessionStorage
   _idToken = sessionStorage.getItem('az_id_token');
   if (_idToken) {
+    _authDebug('token restored from sessionStorage', { tokenLength: _idToken.length });
     const profile = _parseProfile(sessionStorage.getItem('az_profile'));
     if (profile) {
+      _authDebug('profile restored from sessionStorage', { email: profile.email || null });
       setTimeout(() => onSignIn(profile), 0);
       return;
     }
@@ -33,11 +46,16 @@ export function initAuth(clientId, onSignIn, onSignOut) {
   script.async = true;
   script.defer = true;
   script.onload = () => {
+    _authDebug('GIS script loaded');
     google.accounts.id.initialize({
       client_id: clientId,
       callback: _handleCredential,
       auto_select: false,
     });
+    _authDebug('google.accounts.id.initialize done');
+  };
+  script.onerror = () => {
+    _authDebug('GIS script failed to load');
   };
   document.head.appendChild(script);
 }
@@ -50,12 +68,14 @@ export function renderSignInButton(container) {
   // Wait for GIS to load
   const tryRender = () => {
     if (window.google && google.accounts) {
+      _authDebug('Rendering Google sign-in button');
       google.accounts.id.renderButton(container, {
         theme: 'outline',
         size: 'large',
         text: 'signin_with',
         locale: 'cs',
       });
+      _authDebug('Google sign-in button rendered');
     } else {
       setTimeout(tryRender, 100);
     }
@@ -73,6 +93,7 @@ export function signOut() {
   _idToken = null;
   sessionStorage.removeItem('az_id_token');
   sessionStorage.removeItem('az_profile');
+  _authDebug('signOut executed, token removed');
   if (window.google && google.accounts) {
     google.accounts.id.disableAutoSelect();
   }
@@ -83,9 +104,11 @@ export function signOut() {
 
 function _handleCredential(response) {
   _idToken = response.credential;
+  _authDebug('credential callback received', { tokenLength: _idToken ? _idToken.length : 0 });
   sessionStorage.setItem('az_id_token', _idToken);
 
   const profile = _decodeJwtPayload(_idToken);
+  _authDebug('token payload decoded', { email: profile.email || null, aud: profile.aud || null });
   sessionStorage.setItem('az_profile', JSON.stringify(profile));
 
   _onSignIn && _onSignIn(profile);

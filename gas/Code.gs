@@ -86,6 +86,14 @@ function readRows(sheet, headers) {
   });
 }
 
+function writeRows(sheet, headers, rows) {
+  sheet.clearContents();
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  if (rows.length > 0) {
+    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+}
+
 // ── Actions ───────────────────────────────────────────────────────────────
 
 function listQuizzes(ss) {
@@ -135,37 +143,20 @@ function saveQuiz(ss, payload, email) {
   const qSheet     = quizzesSheet(ss);
   const questSheet = questionsSheet(ss);
 
-  const isNew = !payload.id;
-  const id = isNew ? generateId() : payload.id;
+  const id = payload.id || generateId();
+  const quizRows = readRows(qSheet, QUIZ_HEADERS).filter(row => row.id !== id);
+  quizRows.push({
+    id,
+    name: payload.name,
+    ownerEmail: email,
+    settings: JSON.stringify(payload.settings || { timeLimitSec: 0, shuffleAnswers: true }),
+    createdAt: now,
+    updatedAt: now,
+  });
 
-  if (isNew) {
-    qSheet.appendRow([
-      id,
-      payload.name,
-      email,
-      JSON.stringify(payload.settings || { timeLimitSec: 0, shuffleAnswers: true }),
-      now,
-      now,
-    ]);
-  } else {
-    const data = qSheet.getDataRange().getValues();
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === id) {
-        qSheet.getRange(i + 1, 2).setValue(payload.name);
-        qSheet.getRange(i + 1, 4).setValue(JSON.stringify(payload.settings || {}));
-        qSheet.getRange(i + 1, 6).setValue(now);
-        break;
-      }
-    }
-    // Delete existing questions for this quiz
-    const qData = questSheet.getDataRange().getValues();
-    for (let i = qData.length - 1; i >= 1; i--) {
-      if (qData[i][0] === id) questSheet.deleteRow(i + 1);
-    }
-  }
+  const questionRowsExisting = readRows(questSheet, Q_HEADERS).filter(row => row.quizId !== id);
 
-  (payload.questions || []).forEach(q => {
-    questSheet.appendRow([
+  const questionRows = (payload.questions || []).map(q => [
       id,
       q.id || generateId(),
       q.text,
@@ -173,7 +164,29 @@ function saveQuiz(ss, payload, email) {
       JSON.stringify(q.options),
       q.correctIndex,
     ]);
-  });
+
+  const mergedQuestionRows = [
+    ...questionRowsExisting.map(row => [
+      row.quizId,
+      row.id,
+      row.text,
+      row.imageUrl || '',
+      row.options,
+      row.correctIndex,
+    ]),
+    ...questionRows,
+  ];
+
+  writeRows(qSheet, QUIZ_HEADERS, quizRows.map(row => [
+    row.id,
+    row.name,
+    row.ownerEmail,
+    row.settings,
+    row.createdAt,
+    row.updatedAt,
+  ]));
+
+  writeRows(questSheet, Q_HEADERS, mergedQuestionRows);
 
   return id;
 }
@@ -181,16 +194,25 @@ function saveQuiz(ss, payload, email) {
 function deleteQuiz(ss, id) {
   const qSheet     = quizzesSheet(ss);
   const questSheet = questionsSheet(ss);
+  const quizRows = readRows(qSheet, QUIZ_HEADERS).filter(row => row.id !== id).map(row => [
+    row.id,
+    row.name,
+    row.ownerEmail,
+    row.settings,
+    row.createdAt,
+    row.updatedAt,
+  ]);
+  const questionRows = readRows(questSheet, Q_HEADERS).filter(row => row.quizId !== id).map(row => [
+    row.quizId,
+    row.id,
+    row.text,
+    row.imageUrl || '',
+    row.options,
+    row.correctIndex,
+  ]);
 
-  const qData = qSheet.getDataRange().getValues();
-  for (let i = qData.length - 1; i >= 1; i--) {
-    if (qData[i][0] === id) { qSheet.deleteRow(i + 1); break; }
-  }
-
-  const questData = questSheet.getDataRange().getValues();
-  for (let i = questData.length - 1; i >= 1; i--) {
-    if (questData[i][0] === id) questSheet.deleteRow(i + 1);
-  }
+  writeRows(qSheet, QUIZ_HEADERS, quizRows);
+  writeRows(questSheet, Q_HEADERS, questionRows);
 }
 
 // ── Router ────────────────────────────────────────────────────────────────

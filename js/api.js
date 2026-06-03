@@ -22,18 +22,32 @@ async function get(action, params = {}) {
 }
 
 async function post(action, payload = {}) {
-  // GAS 302-redirects POST→GET, losing the request body.
-  // Workaround: send everything via GET URL params.
-  const url = new URL(API_URL);
-  url.searchParams.set('action', action);
   const idToken = getIdToken();
-  if (idToken) url.searchParams.set('idToken', idToken);
-  url.searchParams.set('payload', JSON.stringify(payload));
-
-  const res = await fetch(url.toString());
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    // Keep this a simple request so the browser does not send a CORS preflight.
+    // Apps Script web apps are fragile with OPTIONS/preflight handling.
+    body: JSON.stringify({
+      action,
+      idToken,
+      payload
+    })
+  });
   const data = await res.json();
   if (!data.ok) throw new Error(data.error || 'API error');
   return data.data;
+}
+
+async function postNoCors(action, payload = {}) {
+  await fetch(API_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: JSON.stringify({
+      action,
+      idToken: getIdToken(),
+      payload
+    })
+  });
 }
 
 /** @returns {Promise<Array<{id,name,questionCount,updatedAt}>>} */
@@ -52,11 +66,14 @@ export function getQuizForPlay(id) {
 }
 
 /** Create or update quiz. @returns {Promise<{id:string}>} */
-export function saveQuiz(quiz) {
-  return post('saveQuiz', quiz);
+export async function saveQuiz(quiz) {
+  const id = quiz.id || crypto.randomUUID();
+  await postNoCors('saveQuiz', { ...quiz, id });
+  return { id };
 }
 
 /** @returns {Promise<{}>} */
-export function deleteQuiz(id) {
-  return post('deleteQuiz', { id });
+export async function deleteQuiz(id) {
+  await postNoCors('deleteQuiz', { id });
+  return {};
 }

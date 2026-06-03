@@ -108,3 +108,82 @@ az-kviz/
 - [ ] `js/config.js` vyplněn (Client ID + API URL)
 - [ ] GitHub Pages aktivovány (pro produkci)
 - [ ] OAuth origins obsahují vaši GitHub Pages URL
+
+---
+
+## Troubleshooting (OAuth + GAS)
+
+### OAuth login: `origin_mismatch`
+
+Google kontroluje `origin` vcetne portu. Pokud je povolene `http://localhost:5500`, ale aplikace bezi na `http://localhost:8080`, login bude blokovany.
+
+Doporuceni:
+- Pridat do OAuth klienta vsechny pouzivane originy (napr. `http://localhost:5500`, `http://localhost:8080`, `https://alkaacz.github.io`).
+- Overit, ze `OAUTH_CLIENT_ID` ve [js/config.js](js/config.js) odpovida stejnemu klientovi v Google Cloud.
+
+### `Unauthorized` i kdyz login probehl
+
+Pokud frontend ziska `az_id_token`, ale backend vraci `Unauthorized`, zkontrolujte:
+- `ALLOWED_EMAILS` ve Script Properties.
+- `OAUTH_CLIENT_ID` ve Script Properties proti `aud` v tokenu.
+
+Pro diagnostiku lze pouzit `action=debug` endpoint na GAS backendu.
+
+### GAS zmeny lokalne vs produkce
+
+Zmena [gas/Code.gs](gas/Code.gs) v repu sama o sobe nestaci. Je nutne:
+- pushnout kod do Apps Script projektu,
+- vytvorit novy Web App deployment,
+- zkontrolovat, ze [js/config.js](js/config.js) ukazuje na aktualni `/exec` URL.
+
+### Save kvízu: pomaly beh nebo `400`
+
+Ukladani velkeho kvízu muze byt pomale, pokud backend dela mnoho jednotlivych operaci nad Sheets.
+
+Aktualni implementace:
+- klient uklada pres `POST` v [js/api.js](js/api.js),
+- backend pouziva batch zapis v [gas/Code.gs](gas/Code.gs),
+- save je upsert (novy zaznam v `quizzes` se vytvori i pri klientem predgenerovanem `id`).
+
+---
+
+## Stav k 2026-06-03
+
+### Co jsme dnes udělali
+
+- Vytvořili jsme samostatné repo `az-kviz-gas` pro Google Apps Script deployment přes `clasp`.
+- Propojili jsme `az-kviz-gas` se Script ID:
+   `1TKcdev-UGTKr5kCVTfvnALGA9W3RdkBFkb2lZYSFaETZXa3a4vLmZUtt`.
+- Úspěšně jsme provedli push kódu (`Code.gs` + `appsscript.json`) na Google servery.
+- Vytvořili jsme nový webapp deployment `@14`:
+   `AKfycbypIsjehRb8gp2Hr5iHu3AUIpKVBujKr5-wy7cXE5zIJSk81uJ8A4CeUQUMKMiyjLbLwg`.
+- Ve frontendu (`js/config.js`) jsme přepnuli `API_URL` na nový deployment `@14`.
+- V repu `az-kviz-tests` jsme doplnili Playwright API smoke testy pro GAS endpoint.
+- API testy jsme napojili na existující logging helpery, takže se request/response zapisují do `az-kviz-tests/logs/`.
+
+### Jaká máme repa a k čemu slouží
+
+- `az-kviz`:
+   hlavní FE projekt hry (admin + play), lokální vývoj a GitHub Pages.
+- `az-kviz-gas`:
+   zdrojový repozitář pro backend v Google Apps Script (správa přes `clasp`, push/deploy).
+- `az-kviz-tests`:
+   Playwright testy (UI + API), logování request/response a běh smoke testů.
+
+### Co už funguje
+
+- Deployment GAS backendu přes `clasp`.
+- Nový endpoint je dostupný na:
+   `https://script.google.com/macros/s/AKfycbypIsjehRb8gp2Hr5iHu3AUIpKVBujKr5-wy7cXE5zIJSk81uJ8A4CeUQUMKMiyjLbLwg/exec`.
+- API smoke testy v `az-kviz-tests` pro akce `debug` a `listQuizzes` běží úspěšně.
+- Request/response logy i test logy se ukládají do `az-kviz-tests/logs/`.
+- Frontend je nakonfigurovaný na aktuální GAS deployment (`@14`).
+
+### Co retestovat
+Admin
+- login Admin, 
+- vytvoření Kvízu, uložení kvízu do Google Tabulky
+- načtení Kvízu
+- Editace kvízu
+No Admin
+- použití kvízu

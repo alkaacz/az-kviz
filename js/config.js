@@ -14,7 +14,7 @@ export const CONFIG = {
 //            'https://script.google.com/macros/s/AKfycbzS9KPW4aQabPYlwm_aZTnykpD4wKhlCYx23Md4sAzD9855Ji4EEM-jM4ox6P_ZUKJStg/exec', // verze 10
          // https://script.google.com/macros/s/AKfycbzS9KPW4aQabPYlwm_aZTnykpD4wKhlCYx23Md4sAzD9855Ji4EEM-jM4ox6P_ZUKJStg/exec
          //'https://script.google.com/macros/s/AKfycbzb9dV4m_puOPxoBucNqymMrMmgfoQbBBNQ6sZqSRbLitU7WFV4BnL8UptDFKEhZMm8BA/exec', // verze 11
-          'https://script.google.com/macros/s/AKfycbznjBJv-LLPLSSHUCBsgsVSsZiTF0gnYf6iNOUPBhLKwKqJcrzh8GeYU4BfXLnEgsJtVA/exec', // verze 16
+          'https://script.google.com/macros/s/AKfycbw0j5pknjzrLG08dj6PYkLwsgAXJA3DVsdKpQhJJZ3u6JlQMewcZ47tzsya_r-im3eS1Q/exec', // verze 17
 
   // Spreadsheet ID z URL: docs.google.com/spreadsheets/d/TOTO-JE-ID/edit
   SPREADSHEET_ID: '1KrqJ5xrQ5WfVX9OY8YG8CuDvWelqUf_CYqaRW5p8psE'

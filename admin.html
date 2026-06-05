@@ -388,11 +388,26 @@
   };
 
   function formatQuizSettings(settings) {
-    const timeLimitSec = Number(settings?.timeLimitSec || 0);
-    const shuffleAnswers = settings?.shuffleAnswers ?? true;
+    const parsedSettings = parseQuizSettings(settings);
+    const timeLimitRaw = parsedSettings.timeLimitSec ?? parsedSettings.timeLimit ?? 0;
+    const timeLimitSec = Number(timeLimitRaw) || 0;
+    const shuffleAnswers = parsedSettings.shuffleAnswers ?? true;
     const timeLabel = timeLimitSec > 0 ? `${timeLimitSec} s` : 'bez limitu';
     const shuffleLabel = shuffleAnswers ? 'mix ano' : 'mix ne';
     return `${timeLabel} | ${shuffleLabel}`;
+  }
+
+  function parseQuizSettings(settings) {
+    if (!settings) return {};
+    if (typeof settings === 'string') {
+      try {
+        const parsed = JSON.parse(settings);
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch {
+        return {};
+      }
+    }
+    return typeof settings === 'object' ? settings : {};
   }
 
   document.getElementById('btn-new-quiz').addEventListener('click', () => {

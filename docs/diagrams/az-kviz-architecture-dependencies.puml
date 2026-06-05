@@ -1,0 +1,46 @@
+@startuml
+
+title AZ Kviz - Vrstvy reseni a jejich spoluprace
+top to bottom direction
+skinparam backgroundColor #FFFFFF
+skinparam defaultTextAlignment center
+skinparam shadowing false
+
+actor "Ucitel/Admin" as admin
+actor "Hrac/Trida" as player
+
+rectangle "Admin FE\n(admin.html + auth.js + api.js)" as admin_fe
+rectangle "Herni FE\n(play.html + play.js + game.js)" as game_fe
+
+rectangle "Google Identity Services\n(OAuth + ID token)" as gis
+rectangle "Google OAuth tokeninfo" as tokeninfo
+
+rectangle "Google Apps Script Web App\n(doGet/doPost)" as gas
+rectangle "Auth guard\nverifyIdToken + isAllowed" as auth_guard
+
+database "Google Sheets\n(quizzes, questions)" as sheets
+
+admin --> admin_fe : ovladani admin UI
+player --> game_fe : ovladani herni UI
+
+admin_fe --> gis : Google Sign-In
+gis --> admin_fe : ID token (JWT)
+
+admin_fe --> gas : HTTPS GET/POST\naction + idToken + payload
+game_fe --> gas : HTTPS GET\naction=getQuizForPlay&id
+
+gas --> auth_guard : kontrola admin akci
+auth_guard --> tokeninfo : overeni idToken
+tokeninfo --> auth_guard : aud + email
+auth_guard --> gas : allow/deny
+
+gas --> sheets : read/write kvizu a otazek
+sheets --> gas : data
+
+note bottom of gas
+Admin akce: listQuizzes/getQuiz/saveQuiz/deleteQuiz
+vyzaduji validni idToken a email v ALLOWED_EMAILS.
+getQuizForPlay je verejny endpoint pro herni FE.
+end note
+
+@enduml

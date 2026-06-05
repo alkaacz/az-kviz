@@ -76,6 +76,13 @@
     .btn-sm.primary { border-color: #1e88e5; color: #1e88e5; }
     .btn-sm.primary:hover { background: #e3f2fd; }
 
+    .quiz-meta {
+      font-size: .82rem;
+      color: #666;
+      line-height: 1.35;
+      white-space: pre-line;
+    }
+
     .btn-primary { /* re-use from styles.css but for light bg */
       background: #1e88e5;
       color: #fff;
@@ -183,6 +190,7 @@
         <tr>
           <th>Název</th>
           <th>Otázky</th>
+          <th>Nastavení</th>
           <th>Upraveno</th>
           <th>Vlastník</th>
           <th>Akce</th>
@@ -331,6 +339,7 @@
         <tr>
           <td>${escHtml(q.name)}</td>
           <td>${q.questionCount}</td>
+          <td class="quiz-meta">${escHtml(formatQuizSettings(q.settings))}</td>
           <td>${formatDate(q.updatedAt)}</td>
           <td style="font-size:.8rem;color:#888">${escHtml(q.ownerEmail || '')}</td>
           <td style="display:flex;gap:.4rem;flex-wrap:wrap">
@@ -377,6 +386,14 @@
       status.innerHTML = `<p class="error-msg">Chyba načtení: ${escHtml(e.message)}</p>`;
     }
   };
+
+  function formatQuizSettings(settings) {
+    const timeLimitSec = Number(settings?.timeLimitSec || 0);
+    const shuffleAnswers = settings?.shuffleAnswers ?? true;
+    const timeLabel = timeLimitSec > 0 ? `${timeLimitSec} s` : 'bez limitu';
+    const shuffleLabel = shuffleAnswers ? 'mix ano' : 'mix ne';
+    return `${timeLabel} | ${shuffleLabel}`;
+  }
 
   document.getElementById('btn-new-quiz').addEventListener('click', () => {
     currentQuizId = null;

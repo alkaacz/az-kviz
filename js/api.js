@@ -33,24 +33,17 @@ async function post(action, payload = {}) {
       payload
     })
   });
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+
   const data = await res.json();
   if (!data.ok) throw new Error(data.error || 'API error');
   return data.data;
 }
 
-async function postNoCors(action, payload = {}) {
-  await fetch(API_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    body: JSON.stringify({
-      action,
-      idToken: getIdToken(),
-      payload
-    })
-  });
-}
-
-/** @returns {Promise<Array<{id,name,questionCount,updatedAt}>>} */
+/** @returns {Promise<Array<{id,name,settings,questionCount,updatedAt}>>} */
 export function listQuizzes() {
   return get('listQuizzes');
 }
@@ -68,12 +61,11 @@ export function getQuizForPlay(id) {
 /** Create or update quiz. @returns {Promise<{id:string}>} */
 export async function saveQuiz(quiz) {
   const id = quiz.id || crypto.randomUUID();
-  await postNoCors('saveQuiz', { ...quiz, id });
-  return { id };
+  const data = await post('saveQuiz', { ...quiz, id });
+  return { id: data.id || id };
 }
 
 /** @returns {Promise<{}>} */
 export async function deleteQuiz(id) {
-  await postNoCors('deleteQuiz', { id });
-  return {};
+  return post('deleteQuiz', { id });
 }

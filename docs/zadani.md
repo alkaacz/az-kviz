@@ -334,11 +334,11 @@ Tvůj úkol je MILNÍK 3: backend (Google Apps Script + Sheets), admin UI a napo
 PŘEDPOKLÁDÁM, ŽE UŽIVATEL UŽ MÁ:
 - Google Sheet "AZ-Kviz-Data" (ID si vyžádej, nebo nech placeholder a popiš v README)
 - Google Cloud OAuth Client ID (taky placeholder + README)
-- Apps Script projekt (do něj se nasadí gas/Code.gs)
+- Apps Script projekt (do něj se nasadí az-kviz-gas/src/Code.gs)
 
 Vytvoř:
 
-1) gas/Code.gs
+1) az-kviz-gas/src/Code.gs
    - doGet(e) a doPost(e) - router podle e.parameter.action
    - actions:
      - listQuizzes (admin) - vrátí [{id, name, questionCount, updatedAt}]

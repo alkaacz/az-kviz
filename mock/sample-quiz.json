@@ -6,6 +6,7 @@
   "updatedAt": "2026-01-01T00:00:00Z",
   "settings": {
     "timeLimitSec": 0,
+    "shuffleQuestions": true,
     "shuffleAnswers": true
   },
   "questions": [

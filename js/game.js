@@ -8,7 +8,7 @@ import { createBoard, checkWin } from './board.js';
 /**
  * @typedef {{ id: string, name: string, color: string }} Team
  * @typedef {{ id: string, text: string, imageUrl: string|null, options: string[], correctIndex: number }} Question
- * @typedef {{ id: string, name: string, settings: { timeLimitSec: number, shuffleAnswers: boolean }, questions: Question[] }} Quiz
+ * @typedef {{ id: string, name: string, settings: { timeLimitSec: number, shuffleAnswers: boolean, shuffleQuestions: boolean }, questions: Question[] }} Quiz
  */
 
 /** Fisher-Yates shuffle (mutates array). @template T @param {T[]} arr @returns {T[]} */
@@ -33,8 +33,10 @@ export function createGame(quiz, teams) {
   let activeField = null;  // index of selected field
   let winner = null;       // team id or 'TIE'
 
-  // Pick 28 questions randomly, assign one per field
-  const pickedQuestions = shuffle([...quiz.questions]).slice(0, 28);
+  // Pick questions per settings; keep backward compatibility for older quizzes.
+  const shouldShuffleQuestions = quiz.settings?.shuffleQuestions ?? true;
+  const sourceQuestions = shouldShuffleQuestions ? shuffle([...quiz.questions]) : [...quiz.questions];
+  const pickedQuestions = sourceQuestions.slice(0, 28);
   board.forEach((field, i) => {
     field.questionId = pickedQuestions[i].id;
   });

@@ -215,6 +215,10 @@
 
     <div class="settings-row">
       <label>
+        <input type="checkbox" id="shuffle-questions" checked>
+        Zamíchat otázky
+      </label>
+      <label>
         <input type="checkbox" id="shuffle-answers">
         Zamíchat odpovědi
       </label>
@@ -378,6 +382,7 @@
       const quiz = await getQuiz(id);
       document.getElementById('editor-title').textContent     = quiz.name;
       document.getElementById('quiz-name').value              = quiz.name;
+      document.getElementById('shuffle-questions').checked    = quiz.settings?.shuffleQuestions ?? true;
       document.getElementById('shuffle-answers').checked      = quiz.settings?.shuffleAnswers ?? true;
       document.getElementById('time-limit').value             = quiz.settings?.timeLimitSec ?? 0;
       buildQTable(quiz.questions);
@@ -391,10 +396,12 @@
     const parsedSettings = parseQuizSettings(settings);
     const timeLimitRaw = parsedSettings.timeLimitSec ?? parsedSettings.timeLimit ?? 0;
     const timeLimitSec = Number(timeLimitRaw) || 0;
+    const shuffleQuestions = parsedSettings.shuffleQuestions ?? true;
     const shuffleAnswers = parsedSettings.shuffleAnswers ?? true;
     const timeLabel = timeLimitSec > 0 ? `${timeLimitSec} s` : 'bez limitu';
-    const shuffleLabel = shuffleAnswers ? 'mix ano' : 'mix ne';
-    return `${timeLabel} | ${shuffleLabel}`;
+    const questionOrderLabel = shuffleQuestions ? 'otazky nahodne' : 'otazky postupne';
+    const answerOrderLabel = shuffleAnswers ? 'odpovedi nahodne' : 'odpovedi postupne';
+    return `${timeLabel} | ${questionOrderLabel} | ${answerOrderLabel}`;
   }
 
   function parseQuizSettings(settings) {
@@ -414,6 +421,7 @@
     currentQuizId = null;
     document.getElementById('editor-title').textContent = 'Nový kvíz';
     document.getElementById('quiz-name').value          = '';
+    document.getElementById('shuffle-questions').checked = true;
     document.getElementById('shuffle-answers').checked  = true;
     document.getElementById('time-limit').value         = 0;
     document.getElementById('editor-status').innerHTML  = '';
@@ -503,6 +511,7 @@
       id:        currentQuizId || undefined,
       name,
       settings: {
+        shuffleQuestions: document.getElementById('shuffle-questions').checked,
         shuffleAnswers: document.getElementById('shuffle-answers').checked,
         timeLimitSec:   parseInt(document.getElementById('time-limit').value, 10) || 0,
       },

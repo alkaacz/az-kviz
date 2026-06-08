@@ -10,8 +10,9 @@
     body { background: #f0f2f5; color: #1a1a2e; font-family: system-ui, sans-serif; }
 
     .admin-wrap {
-      max-width: 960px;
-      margin: 0 auto;
+      width: 100%;
+      max-width: none;
+      margin: 0;
       padding: 1.5rem;
     }
 
@@ -127,6 +128,28 @@
     #questions-wrap { overflow-x: auto; margin-top: 1.25rem; }
 
     table.q-table th, table.q-table td { padding: .5rem .6rem; vertical-align: top; }
+    table.q-table tr.q-img-row td {
+      background: #fcfdff;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    table.q-table tr.q-row-main.q-even td,
+    table.q-table tr.q-row-main.q-even + tr.q-img-row td {
+      background: #f3f5f7;
+    }
+    .img-field-wrap {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .img-field-wrap label {
+      min-width: 92px;
+      font-size: .82rem;
+      color: #666;
+      white-space: nowrap;
+    }
+    .img-field-wrap input[type="text"] {
+      width: 100%;
+    }
     table.q-table input[type="text"] {
       width: 100%;
       padding: .3rem .5rem;
@@ -236,7 +259,6 @@
           <tr>
             <th>#</th>
             <th style="min-width:200px">Otázka</th>
-            <th style="min-width:140px">URL obrázku</th>
             <th>Odpověď A</th>
             <th>Odpověď B</th>
             <th>Odpověď C</th>
@@ -441,16 +463,16 @@
 
   function addQRow(q = {}, index) {
     const tbody = document.getElementById('q-tbody');
-    const i = tbody.rows.length;
+    const i = document.querySelectorAll('#q-tbody tr.q-row-main').length;
     const opts = q.options || ['', '', '', ''];
     const correctIdx = q.correctIndex ?? 0;
 
     const tr = document.createElement('tr');
+    tr.className = 'q-row-main';
     tr.dataset.qid = q.id || '';
     tr.innerHTML = `
       <td style="color:#888;font-size:.8rem">${i + 1}</td>
       <td><textarea class="q-text">${escHtml(q.text || '')}</textarea></td>
-      <td><input type="text" class="q-img" value="${escHtml(q.imageUrl || '')}" placeholder="https://…"></td>
       ${opts.map((o, oi) => `<td><input type="text" class="q-opt" data-opt="${oi}" value="${escHtml(o)}"></td>`).join('')}
       <td style="text-align:center">
         <select class="q-correct">
@@ -459,23 +481,38 @@
       </td>
       <td><button class="btn-sm danger q-del" title="Smazat">✕</button></td>
     `;
+    const trImg = document.createElement('tr');
+    trImg.className = 'q-img-row';
+    trImg.innerHTML = `
+      <td colspan="8">
+        <div class="img-field-wrap">
+          <label>URL obrázku</label>
+          <input type="text" class="q-img" value="${escHtml(q.imageUrl || '')}" placeholder="https://...">
+        </div>
+      </td>
+    `;
+
     tr.querySelector('.q-del').addEventListener('click', () => {
       tr.remove();
+      trImg.remove();
       renumberRows();
       updateQCount();
     });
     tbody.appendChild(tr);
+    tbody.appendChild(trImg);
+    renumberRows();
     updateQCount();
   }
 
   function renumberRows() {
-    document.querySelectorAll('#q-tbody tr').forEach((tr, i) => {
+    document.querySelectorAll('#q-tbody tr.q-row-main').forEach((tr, i) => {
       tr.cells[0].textContent = i + 1;
+      tr.classList.toggle('q-even', (i + 1) % 2 === 0);
     });
   }
 
   function updateQCount() {
-    const count = document.getElementById('q-tbody').rows.length;
+    const count = document.querySelectorAll('#q-tbody tr.q-row-main').length;
     const info  = document.getElementById('q-count-info');
     info.textContent = `${count} otázek${count < 28 ? ` (minimum je 28, chybí ${28 - count})` : ' ✓'}`;
     info.style.color = count < 28 ? '#e53935' : '#43a047';
@@ -495,9 +532,10 @@
 
     const questions = [];
     let valid = true;
-    document.querySelectorAll('#q-tbody tr').forEach((tr, i) => {
+    document.querySelectorAll('#q-tbody tr.q-row-main').forEach((tr, i) => {
       const text    = tr.querySelector('.q-text').value.trim();
-      const imgUrl  = tr.querySelector('.q-img').value.trim();
+      const imgInput = tr.nextElementSibling?.querySelector('.q-img');
+      const imgUrl  = imgInput ? imgInput.value.trim() : '';
       const opts    = [...tr.querySelectorAll('.q-opt')].map(el => el.value.trim());
       const correct = parseInt(tr.querySelector('.q-correct').value, 10);
       if (!text || opts.some(o => !o)) { valid = false; return; }

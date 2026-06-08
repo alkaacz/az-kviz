@@ -206,7 +206,7 @@ export function renderBoardSVG(board, container, onFieldClick) {
     txt.setAttribute('font-size', '11');
     txt.setAttribute('fill', owner === 'BLACK' ? '#aaa' : '#333');
     txt.setAttribute('pointer-events', 'none');
-    txt.textContent = index;
+    txt.textContent = String(index + 1);
     g.appendChild(txt);
 
     g.addEventListener('click', () => onFieldClick(index));

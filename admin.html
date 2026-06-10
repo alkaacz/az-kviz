@@ -92,8 +92,81 @@
       border-radius: 6px;
       font-size: .95rem;
       cursor: pointer;
+      transition: transform .14s ease, box-shadow .18s ease, background .18s ease;
     }
     .btn-primary:hover { background: #1565c0; }
+    .btn-primary.is-saving {
+      background: #0f5ea8;
+      box-shadow: 0 8px 18px #1e88e533;
+      transform: translateY(-1px);
+      cursor: wait;
+    }
+
+    .save-progress {
+      position: relative;
+      height: 6px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #dfe9f5;
+      margin: 0 0 1rem;
+      display: none;
+    }
+    .save-progress.active { display: block; }
+    .save-progress__bar {
+      position: absolute;
+      left: -38%;
+      top: 0;
+      height: 100%;
+      width: 38%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #1e88e5 0%, #42a5f5 55%, #90caf9 100%);
+      animation: saveProgressSlide 1s ease-in-out infinite;
+      box-shadow: 0 0 10px #1e88e588;
+    }
+    @keyframes saveProgressSlide {
+      0% { left: -38%; }
+      100% { left: 100%; }
+    }
+
+    .save-status {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .88rem;
+      padding: .36rem .62rem;
+      border-radius: 999px;
+      font-weight: 600;
+      margin: .12rem 0 .4rem;
+    }
+    .save-status--loading {
+      color: #0b5fa7;
+      background: #e7f1fd;
+      border: 1px solid #c6defa;
+    }
+    .save-status--ok {
+      color: #1b5e20;
+      background: #e8f5e9;
+      border: 1px solid #c8e6c9;
+    }
+    .save-status--error {
+      color: #b71c1c;
+      background: #fdecec;
+      border: 1px solid #f4c2c2;
+    }
+    .save-status__dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: .9;
+    }
+    .save-status--loading .save-status__dot {
+      animation: savePulse .85s ease-in-out infinite;
+    }
+    @keyframes savePulse {
+      0%, 100% { transform: scale(1); opacity: .45; }
+      50% { transform: scale(1.3); opacity: 1; }
+    }
 
     /* Editor */
     #view-editor { display: none; }
@@ -245,6 +318,9 @@
       <h2>Kvízy</h2>
       <button class="btn-primary" id="btn-new-quiz">+ Nový kvíz</button>
     </div>
+    <div id="list-progress" class="save-progress" aria-hidden="true">
+      <div class="save-progress__bar"></div>
+    </div>
     <div id="list-status"></div>
     <table id="quiz-table">
       <thead>
@@ -267,6 +343,10 @@
       <button class="btn-sm" id="btn-back">← Zpět</button>
       <h2 id="editor-title">Nový kvíz</h2>
       <button class="btn-primary" id="btn-save">Uložit</button>
+    </div>
+
+    <div id="save-progress" class="save-progress" aria-hidden="true">
+      <div class="save-progress__bar"></div>
     </div>
 
     <div class="field-row">
@@ -357,6 +437,9 @@
 
   // ── State ───────────────────────────────────────────────────────────────
   let currentQuizId = null;  // null = new quiz
+  let isSaveInProgress = false;
+  let saveGuardUntil = 0;
+  const SAVE_RETRIGGER_GUARD_MS = 900;
 
   // ── Auth ────────────────────────────────────────────────────────────────
   initAuth(CONFIG.OAUTH_CLIENT_ID, onSignIn, onSignOutCb);
@@ -386,11 +469,24 @@
   }
 
   // ── Quiz list ───────────────────────────────────────────────────────────
+  function setListUiState(isLoading) {
+    const bar = document.getElementById('list-progress');
+    const newQuizBtn = document.getElementById('btn-new-quiz');
+    bar.classList.toggle('active', isLoading);
+    bar.setAttribute('aria-hidden', isLoading ? 'false' : 'true');
+    newQuizBtn.disabled = isLoading;
+    newQuizBtn.classList.toggle('is-saving', isLoading);
+    document.querySelectorAll('#quiz-tbody button').forEach(btn => {
+      btn.disabled = isLoading;
+    });
+  }
+
   async function showList() {
     showView('view-list');
     const status = document.getElementById('list-status');
     const tbody  = document.getElementById('quiz-tbody');
-    status.innerHTML = '<span class="spinner"></span> Načítám…';
+    setListUiState(true);
+    status.innerHTML = '<div class="save-status save-status--loading"><span class="save-status__dot"></span>Načítám seznam kvízů…</div>';
     tbody.innerHTML  = '';
     try {
       const quizzes = await listQuizzes();
@@ -414,7 +510,9 @@
         </tr>
       `).join('');
     } catch (e) {
-      status.innerHTML = `<p class="error-msg">Chyba: ${escHtml(e.message)}</p>`;
+      status.innerHTML = `<div class="save-status save-status--error"><span class="save-status__dot"></span>Načtení selhalo: ${escHtml(e.message)}</div>`;
+    } finally {
+      setListUiState(false);
     }
   }
 
@@ -425,18 +523,23 @@
 
   window.removeQuiz = async function(id, name) {
     if (!confirm(`Smazat kvíz "${name}"?`)) return;
+    const status = document.getElementById('list-status');
+    setListUiState(true);
+    status.innerHTML = '<div class="save-status save-status--loading"><span class="save-status__dot"></span>Mažu kvíz…</div>';
     try {
       await deleteQuiz(id);
-      showList();
+      await showList();
     } catch (e) {
-      alert('Chyba: ' + e.message);
+      status.innerHTML = `<div class="save-status save-status--error"><span class="save-status__dot"></span>Smazání selhalo: ${escHtml(e.message)}</div>`;
+      setListUiState(false);
     }
   };
 
   window.editQuiz = async function(id) {
     currentQuizId = id;
     const status = document.getElementById('editor-status');
-    status.innerHTML = '<span class="spinner"></span>';
+    status.innerHTML = '<div class="save-status save-status--loading"><span class="save-status__dot"></span>Načítám detail kvízu…</div>';
+    setSaveUiState(true, { busyText: 'Načítám…', withGlow: false });
     showView('view-editor');
     try {
       const quiz = await getQuiz(id);
@@ -448,7 +551,9 @@
       buildQTable(quiz.questions);
       status.innerHTML = '';
     } catch (e) {
-      status.innerHTML = `<p class="error-msg">Chyba načtení: ${escHtml(e.message)}</p>`;
+      status.innerHTML = `<div class="save-status save-status--error"><span class="save-status__dot"></span>Načtení selhalo: ${escHtml(e.message)}</div>`;
+    } finally {
+      setSaveUiState(false);
     }
   };
 
@@ -598,7 +703,21 @@
   });
 
   // ── Save ────────────────────────────────────────────────────────────────
+  function setSaveUiState(isSaving, options = {}) {
+    const { busyText = 'Ukládám…', withGlow = true } = options;
+    const btn = document.getElementById('btn-save');
+    const bar = document.getElementById('save-progress');
+    btn.disabled = isSaving;
+    btn.classList.toggle('is-saving', isSaving && withGlow);
+    btn.textContent = isSaving ? busyText : 'Uložit';
+    bar.classList.toggle('active', isSaving);
+    bar.setAttribute('aria-hidden', isSaving ? 'false' : 'true');
+  }
+
   document.getElementById('btn-save').addEventListener('click', async () => {
+    const now = Date.now();
+    if (isSaveInProgress || now < saveGuardUntil) return;
+
     const status = document.getElementById('editor-status');
     const name   = document.getElementById('quiz-name').value.trim();
     if (!name) { status.innerHTML = '<p class="error-msg">Zadejte název kvízu.</p>'; return; }
@@ -629,17 +748,20 @@
       questions,
     };
 
-    status.innerHTML = '<span class="spinner"></span> Ukládám…';
-    document.getElementById('btn-save').disabled = true;
+    isSaveInProgress = true;
+    status.innerHTML = '<div class="save-status save-status--loading"><span class="save-status__dot"></span>Ukládám kvíz na server…</div>';
+    setSaveUiState(true);
     try {
       const result = await saveQuiz(quiz);
       currentQuizId = result.id;
-      status.innerHTML = '<p class="success-msg">✓ Uloženo!</p>';
+      status.innerHTML = '<div class="save-status save-status--ok"><span class="save-status__dot"></span>Kvíz byl uložen</div>';
       document.getElementById('editor-title').textContent = name;
     } catch (e) {
-      status.innerHTML = `<p class="error-msg">Chyba: ${escHtml(e.message)}</p>`;
+      status.innerHTML = `<div class="save-status save-status--error"><span class="save-status__dot"></span>Uložení selhalo: ${escHtml(e.message)}</div>`;
     } finally {
-      document.getElementById('btn-save').disabled = false;
+      setSaveUiState(false);
+      isSaveInProgress = false;
+      saveGuardUntil = Date.now() + SAVE_RETRIGGER_GUARD_MS;
     }
   });
 

@@ -32,8 +32,15 @@ export function initAuth(clientId, onSignIn, onSignOut) {
   _idToken = sessionStorage.getItem('az_id_token');
   if (_idToken) {
     _authDebug('token restored from sessionStorage', { tokenLength: _idToken.length });
-    const profile = _parseProfile(sessionStorage.getItem('az_profile'));
+    const storedProfile = _parseProfile(sessionStorage.getItem('az_profile'));
+    const tokenProfile = _decodeJwtPayload(_idToken);
+    const profile = {
+      ...(storedProfile || {}),
+      ...(tokenProfile || {}),
+    };
+
     if (profile) {
+      sessionStorage.setItem('az_profile', JSON.stringify(profile));
       _authDebug('profile restored from sessionStorage', { email: profile.email || null });
       setTimeout(() => onSignIn(profile), 0);
       return;
@@ -116,11 +123,23 @@ function _handleCredential(response) {
 
 function _decodeJwtPayload(token) {
   try {
-    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(atob(base64));
+    const base64UrlPayload = token.split('.')[1];
+    if (!base64UrlPayload) return {};
+
+    const paddedBase64 = _toPaddedBase64(base64UrlPayload);
+    const raw = atob(paddedBase64);
+    const bytes = Uint8Array.from(raw, ch => ch.charCodeAt(0));
+    const json = new TextDecoder('utf-8').decode(bytes);
+    return JSON.parse(json);
   } catch {
     return {};
   }
+}
+
+function _toPaddedBase64(base64Url) {
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const padLen = (4 - (base64.length % 4)) % 4;
+  return base64 + '='.repeat(padLen);
 }
 
 function _parseProfile(str) {

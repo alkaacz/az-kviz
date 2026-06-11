@@ -92,3 +92,94 @@ Model uklada cely kviz jako metadatovou hlavicku + otazky v samostatnych radcich
 - Herni data se vyhodnocuji na klientovi, proto je potreba provozni pravidlo: hraci nemaji pristup k ucitelskemu zarizeni nebo DevTools.
 - Public herni endpoint je zjednoduseni UX; neni to model pro vysokou uroven utajeni obsahu otazek.
 - Google Sheets je vhodne pro skolu a MVP, ne pro vysokou soubeznost.
+
+## 7. Technicka priloha (slouceno z puvodniho README)
+
+### 7.1 Setup backendu a konfigurace
+
+1. Google Sheet
+1. Vytvorte novy Google Sheet s nazvem `AZ-Kviz-Data` na https://sheets.google.com.
+1. Zkopirujte Spreadsheet ID z URL.
+1. Sheety `quizzes` a `questions` se vytvori automaticky pri prvnim spusteni.
+
+2. Google Apps Script
+1. Otevrete https://script.google.com a vytvorte novy projekt.
+1. Nahrajte backend kod ze souboru [az-kviz-gas/src/Code.gs](../az-kviz-gas/src/Code.gs).
+1. V `Script Properties` nastavte:
+- `SPREADSHEET_ID`
+- `OAUTH_CLIENT_ID`
+- `ALLOWED_EMAILS`
+1. Udelejte deployment jako `Web app`:
+- Execute as: `Me`
+- Who has access: `Anyone`
+
+3. OAuth Client ID
+1. V Google Cloud vytvorte `OAuth Client ID` typu `Web application`.
+1. Pridejte autorizovane origins pro lokalni beh i produkci (napr. `http://localhost:5500`, `http://localhost:8080`, `https://alkaacz.github.io`).
+
+4. Frontend konfigurace
+1. Vyplnte [js/config.js](../js/config.js):
+- `OAUTH_CLIENT_ID`
+- `API_URL`
+- `SPREADSHEET_ID` (referencni)
+1. [js/config.js](../js/config.js) je v `.gitignore` a nema se commitovat.
+
+Poznamka: source of truth pro backend je repo `az-kviz-gas`, ne frontend repo.
+
+### 7.2 Lokalni vyvoj
+
+1. Spustte staticky server:
+1. `python -m http.server 8080`
+1. nebo VS Code Live Server (obvykle port 5500)
+
+2. Otevrete:
+1. `http://localhost:5500/play.html` pro hru
+1. `http://localhost:5500/admin.html` pro admin
+
+Bez parametru `quizId` se `play.html` nacte z `mock/sample-quiz.json`.
+
+### 7.3 Deploy frontendu (GitHub Pages)
+
+1. Push na `main` branch.
+1. V GitHub Settings zapnout Pages: source `main/root`.
+1. Produkcni URL: `https://alkaacz.github.io/az-kviz/`.
+
+Herni odkaz pro zaky:
+`https://alkaacz.github.io/az-kviz/play.html?quizId=ID-KVIZU`
+
+### 7.4 Troubleshooting
+
+1. OAuth `origin_mismatch`
+- Zkontrolovat, ze origin i port odpovida tomu, kde FE bezi.
+- Doplneni vsech pouzivanych originu do OAuth klienta.
+
+2. Unauthorized po prihlaseni
+- Zkontrolovat `ALLOWED_EMAILS`.
+- Zkontrolovat shodu `aud` v tokenu a `OAUTH_CLIENT_ID` v Script Properties.
+
+3. GAS zmeny se neprojevi
+- Samotna zmena kodu nestaci, je nutny novy Web App deployment.
+- Overit, ze [js/config.js](../js/config.js) ukazuje na aktualni `/exec` URL.
+
+4. CORS/redirect na accounts.google.com
+- Deployment neni verejny, opravit na:
+- Execute as: `Me`
+- Who has access: `Anyone`
+
+5. Pomalost saveQuiz
+- Save je upsert a backend pouziva batch zapis.
+- U velkych kvizu muze byt beh pomalejsi kvuli operacim nad Google Sheets.
+
+### 7.5 Stav a provozni overeni (snapshot)
+
+K 2026-06-05 bylo overeno:
+- funkcni admin flow (login, list, create/edit/save, delete)
+- funkcni herni flow (`play.html?quizId=...`)
+- API smoke testy v `az-kviz-tests`
+
+Po kazdem deployi retestovat:
+- admin login
+- list kvizu
+- vytvoreni + editace + smazani kvizu
+- otevreni herniho odkazu
+- nacteni otazek a dohrani hry

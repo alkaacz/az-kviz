@@ -1,9 +1,7 @@
 # AZ Kvíz
 
 Uživatelský návod pro práci s aplikací AZ Kvíz.
-
 Odkaz: [https://alkaacz.github.io/az-kviz](https://alkaacz.github.io/az-kviz).
-
 
 ## I. Hráč
 

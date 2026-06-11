@@ -2,8 +2,6 @@
 
 Uživatelský návod pro práci s aplikací AZ Kvíz.
 
-Technická a architektonická dokumentace je v [docs/realizace-architektura.md](docs/realizace-architektura.md).
-
 ## I. Hráč
 
 Hráč má dvě možnosti, jak hru spustit.
